@@ -18,41 +18,45 @@
 
 package org.apache.myriad.configuration;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
 import java.util.Map;
+
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.hibernate.validator.constraints.NotEmpty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Optional;
 
 /**
  * Configuration for any service/task to be started from Myriad Scheduler
  */
 public class ServiceConfiguration {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ServiceConfiguration.class);
+  /**
+   * Default number of CPU cores per Mesos executor JVM.
+   */
+  public static final Double DEFAULT_CPU    = 0.1;
 
-  public static final Double DEFAULT_CPU = 0.1;
-
+  /**
+   * Default amount of RAM per Mesos executor JVM.
+   */
   public static final Double DEFAULT_MEMORY = 256.0;
 
   /**
-   * Translates to -Xmx for the JVM.
+   * Translates to -Xmx for the Mesos executor JVM.
    */
   @JsonProperty
   @JsonSerialize(using = OptionalSerializer.OptionalSerializerDouble.class)
   protected Double jvmMaxMemoryMB;
 
   /**
-   * Amount of CPU share given to  JVM.
+   * Amount of CPU share given to Mesos executor JVM.
    */
   @JsonProperty
   @JsonSerialize(using = OptionalSerializer.OptionalSerializerDouble.class)
   protected Double cpus;
 
   /**
-   * Translates to jvm opts for the JVM.
+   * Translates to JVM opts for the Mesos executor JVM.
    */
   @JsonProperty
   @JsonSerialize(using = OptionalSerializer.OptionalSerializerString.class)
