@@ -161,10 +161,8 @@ public class MyriadConfiguration {
   @JsonProperty
   private String mesosAuthenticationSecretFilename;
 
-
   public MyriadConfiguration() {
   }
-
 
   public String getMesosMaster() {
     return mesosMaster;
@@ -227,7 +225,7 @@ public class MyriadConfiguration {
   }
 
   public String getNativeLibrary() {
-    return Optional.of(nativeLibrary).or("/usr/local/lib/libmesos.so");
+    return Optional.of(nativeLibrary).or(DEFAULT_NATIVE_LIBRARY);
   }
 
   public String getZkServers() {

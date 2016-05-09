@@ -262,7 +262,7 @@ public class Main {
   }
 
   private void initRebalancerService(MyriadConfiguration cfg, Injector injector) {
-    if (cfg.isRebalancer()) {
+    if (cfg.isRebalancerEnabled()) {
       LOGGER.info("Initializing Rebalancer");
       rebalancerService = Executors.newScheduledThreadPool(1);
       final int initialDelay = 100;
