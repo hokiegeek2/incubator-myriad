@@ -110,7 +110,7 @@ public class MyriadOperations {
    * @param serviceName
    */
   public void flexUpAService(int instances, String serviceName) throws MyriadBadConfigurationException {
-    final ServiceConfiguration auxTaskConf = cfg.getServiceConfiguration(serviceName);
+    final ServiceConfiguration auxTaskConf = cfg.getServiceConfiguration(serviceName).get();
 
     int totalflexInstances = instances + getFlexibleInstances(serviceName);
     Integer maxInstances = auxTaskConf.getMaxInstances().orNull();

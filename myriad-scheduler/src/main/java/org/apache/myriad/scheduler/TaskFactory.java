@@ -18,14 +18,15 @@
  */
 package org.apache.myriad.scheduler;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.Set;
+
 import javax.inject.Inject;
+
 import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Protos.CommandInfo.URI;
 import org.apache.mesos.Protos.ExecutorID;
@@ -42,6 +43,9 @@ import org.apache.myriad.configuration.MyriadExecutorConfiguration;
 import org.apache.myriad.state.NodeTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 
 
 /**
@@ -119,7 +123,7 @@ public interface TaskFactory {
     //Utility function to get the first NMPorts.expectedNumPorts number of ports of an offer
     @VisibleForTesting
     protected static NMPorts getPorts(Offer offer) {
-      HashSet<Long> ports = new HashSet<>();
+      Set<Long> ports = new HashSet<>();
       for (Resource resource : offer.getResourcesList()) {
         if (resource.getName().equals("ports") && (!resource.hasRole() || resource.getRole().equals("*"))) {
           ports = getNMPorts(resource);

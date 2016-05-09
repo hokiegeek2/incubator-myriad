@@ -71,7 +71,7 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
     Objects.requireNonNull(offer, "Offer should be non-null");
     Objects.requireNonNull(nodeTask, "NodeTask should be non-null");
 
-    ServiceConfiguration serviceConfig = cfg.getServiceConfiguration(nodeTask.getTaskPrefix());
+    ServiceConfiguration serviceConfig = cfg.getServiceConfiguration(nodeTask.getTaskPrefix()).get();
 
     Objects.requireNonNull(serviceConfig, "ServiceConfig should be non-null");
     Objects.requireNonNull(serviceConfig.getCommand().orNull(), "command for ServiceConfig should be non-null");

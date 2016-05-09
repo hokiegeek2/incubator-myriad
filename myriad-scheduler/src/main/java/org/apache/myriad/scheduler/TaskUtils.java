@@ -18,11 +18,12 @@
  */
 package org.apache.myriad.scheduler;
 
-import com.google.common.base.Optional;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.List;
+
 import javax.inject.Inject;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -54,6 +55,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+
+import com.google.common.base.Optional;
 
 /**
  * utility class for working with tasks and node manager profiles
@@ -149,13 +152,13 @@ public class TaskUtils {
   }
 
   public double getNodeManagerMemory() {
-    NodeManagerConfiguration nmCfg = this.cfg.getNodeManagerConfiguration();
+    NodeManagerConfiguration nmCfg = cfg.getNodeManagerConfiguration().get();
     return (nmCfg.getJvmMaxMemoryMB().isPresent() ? nmCfg.getJvmMaxMemoryMB()
         .get() : NodeManagerConfiguration.DEFAULT_JVM_MAX_MEMORY_MB) * (1 + NodeManagerConfiguration.JVM_OVERHEAD);
   }
 
   public double getNodeManagerCpus() {
-    Optional<Double> cpus = this.cfg.getNodeManagerConfiguration().getCpus();
+    Optional<Double> cpus = this.cfg.getNodeManagerConfiguration().get().getCpus();
     return cpus.isPresent() ? cpus.get() : NodeManagerConfiguration.DEFAULT_NM_CPUS;
   }
 
@@ -184,21 +187,21 @@ public class TaskUtils {
     if (taskName.startsWith(NodeManagerConfiguration.NM_TASK_PREFIX)) {
       return getAggregateCpus(profile);
     }
-    ServiceConfiguration auxConf = cfg.getServiceConfiguration(taskName);
-    if (auxConf == null) {
+    Optional<ServiceConfiguration> auxConf = cfg.getServiceConfiguration(taskName);
+    if (!auxConf.isPresent()) {
       throw new MyriadBadConfigurationException("Can not find profile for task name: " + taskName);
     }
-    if (!auxConf.getCpus().isPresent()) {
+    if (!auxConf.get().getCpus().isPresent()) {
       throw new MyriadBadConfigurationException("cpu is not defined for task with name: " + taskName);
     }
-    return auxConf.getCpus().get();
+    return auxConf.get().getCpus().get();
   }
 
   public double getAuxTaskMemory(NMProfile profile, String taskName) throws MyriadBadConfigurationException {
     if (taskName.startsWith(NodeManagerConfiguration.NM_TASK_PREFIX)) {
       return getAggregateMemory(profile);
     }
-    ServiceConfiguration auxConf = cfg.getServiceConfiguration(taskName);
+    ServiceConfiguration auxConf = cfg.getServiceConfiguration(taskName).orNull();
     if (auxConf == null) {
       throw new MyriadBadConfigurationException("Can not find profile for task name: " + taskName);
     }
@@ -220,7 +223,9 @@ public class TaskUtils {
    */
   public Iterable<Protos.Resource> getScalarResource(Protos.Offer offer, String name, Double value, Double used) {
     String role = cfg.getFrameworkRole();
-    ArrayList<Protos.Resource> resources = new ArrayList<>();
+
+    List<Protos.Resource> resources = new ArrayList<>();
+    
     double resourceDifference = 0; //used to determine the resource difference of value and the resources requested from role *
     //Find role by name, must loop through resources
     for (Protos.Resource r : offer.getResourcesList()) {
