@@ -67,7 +67,7 @@ public class NodeManagerConfiguration {
   @JsonProperty
   @JsonSerialize(using = OptionalSerializerString.class)
   private String jvmOpts;
-
+  
   /**
    * Determines if cgroups are enabled for NM or not.
    */
@@ -78,13 +78,13 @@ public class NodeManagerConfiguration {
   public Optional<Double> getJvmMaxMemoryMB() {
     return Optional.fromNullable(jvmMaxMemoryMB);
   }
-
+  
   public Optional<String> getJvmOpts() {
     return Optional.fromNullable(jvmOpts);
   }
-
-  public Optional<Double> getCpus() {
-    return Optional.fromNullable(cpus);
+  
+  public Double getCpus() {
+    return Optional.of(cpus).or(DEFAULT_NM_CPUS);
   }
 
   public Optional<Boolean> getCgroups() {
