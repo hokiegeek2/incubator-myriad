@@ -154,12 +154,15 @@ public class TaskUtils {
   public double getNodeManagerMemory() {
     NodeManagerConfiguration nmCfg = cfg.getNodeManagerConfiguration().get();
     return (nmCfg.getJvmMaxMemoryMB().isPresent() ? nmCfg.getJvmMaxMemoryMB()
-        .get() : NodeManagerConfiguration.DEFAULT_JVM_MAX_MEMORY_MB) * (1 + NodeManagerConfiguration.JVM_OVERHEAD);
+        .get() : generateNodeManagerMemory());
+  }
+  
+  private double generateNodeManagerMemory() {
+    return (NodeManagerConfiguration.DEFAULT_JVM_MAX_MEMORY_MB) * (1 + NodeManagerConfiguration.JVM_OVERHEAD);
   }
 
   public double getNodeManagerCpus() {
-    Optional<Double> cpus = this.cfg.getNodeManagerConfiguration().get().getCpus();
-    return cpus.isPresent() ? cpus.get() : NodeManagerConfiguration.DEFAULT_NM_CPUS;
+    return cfg.getNodeManagerConfiguration().get().getCpus();
   }
 
   public double getExecutorCpus() {
