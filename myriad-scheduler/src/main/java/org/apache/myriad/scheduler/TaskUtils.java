@@ -44,7 +44,6 @@ import javax.xml.xpath.XPathFactory;
 import org.apache.mesos.Protos;
 import org.apache.myriad.configuration.MyriadBadConfigurationException;
 import org.apache.myriad.configuration.MyriadConfiguration;
-import org.apache.myriad.configuration.MyriadExecutorConfiguration;
 import org.apache.myriad.configuration.NodeManagerConfiguration;
 import org.apache.myriad.configuration.ServiceConfiguration;
 import org.apache.myriad.executor.MyriadExecutorDefaults;
@@ -152,15 +151,9 @@ public class TaskUtils {
   }
 
   public double getNodeManagerMemory() {
-    NodeManagerConfiguration nmCfg = cfg.getNodeManagerConfiguration().get();
-    return (nmCfg.getJvmMaxMemoryMB().isPresent() ? nmCfg.getJvmMaxMemoryMB()
-        .get() : generateNodeManagerMemory());
+    return cfg.getNodeManagerConfiguration().get().getJvmMaxMemoryMB();
   }
   
-  private double generateNodeManagerMemory() {
-    return (NodeManagerConfiguration.DEFAULT_JVM_MAX_MEMORY_MB) * (1 + NodeManagerConfiguration.JVM_OVERHEAD);
-  }
-
   public double getNodeManagerCpus() {
     return cfg.getNodeManagerConfiguration().get().getCpus();
   }
@@ -171,9 +164,7 @@ public class TaskUtils {
   }
 
   public double getExecutorMemory() {
-    MyriadExecutorConfiguration executorCfg = this.cfg.getMyriadExecutorConfiguration();
-    return (executorCfg.getJvmMaxMemoryMB().isPresent() ? executorCfg.getJvmMaxMemoryMB()
-        .get() : MyriadExecutorDefaults.DEFAULT_JVM_MAX_MEMORY_MB) * (1 + MyriadExecutorDefaults.JVM_OVERHEAD);
+    return cfg.getMyriadExecutorConfiguration().getJvmMaxMemoryMB();
   }
 
   public double getTaskCpus(NMProfile profile) {
