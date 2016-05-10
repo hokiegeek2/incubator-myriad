@@ -239,7 +239,8 @@ public class Main {
     ServiceProfileManager profileManager = injector.getInstance(ServiceProfileManager.class);
     TaskConstraintsManager taskConstraintsManager = injector.getInstance(TaskConstraintsManager.class);
 
-    Map<String, ServiceConfiguration> servicesConfigs = injector.getInstance(MyriadConfiguration.class).getServiceConfigurations();
+    Map<String, ServiceConfiguration> servicesConfigs = injector.getInstance(MyriadConfiguration.class).getServiceConfigurations().orNull();
+
     if (servicesConfigs != null) {
       for (Map.Entry<String, ServiceConfiguration> entry : servicesConfigs.entrySet()) {
         final String taskPrefix = entry.getKey();
@@ -286,7 +287,8 @@ public class Main {
    */
   private void startJavaBasedTaskInstance(Injector injector) {
     Map<String, ServiceConfiguration> auxServicesConfigs = injector.getInstance(MyriadConfiguration.class)
-        .getServiceConfigurations();
+        .getServiceConfigurations().orNull();
+    
     if (auxServicesConfigs != null) {
       MyriadOperations myriadOperations = injector.getInstance(MyriadOperations.class);
       for (Map.Entry<String, ServiceConfiguration> entry : auxServicesConfigs.entrySet()) {

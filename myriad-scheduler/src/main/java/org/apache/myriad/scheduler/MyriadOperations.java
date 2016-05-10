@@ -108,15 +108,17 @@ public class MyriadOperations {
    *
    * @param instances
    * @param serviceName
+   * 
+   * @throws MyriadBadConfigurationException if total number of instances in active, staging, and pending
+   *                                         states exceeds the ServiceConfiguration.maxInstances
    */
   public void flexUpAService(int instances, String serviceName) throws MyriadBadConfigurationException {
     final ServiceConfiguration auxTaskConf = cfg.getServiceConfiguration(serviceName).get();
-
-    int totalflexInstances = instances + getFlexibleInstances(serviceName);
-    Integer maxInstances = auxTaskConf.getMaxInstances().orNull();
-    if (maxInstances != null && maxInstances > 0) {
-      // check number of instances
-      // sum of active, staging, pending should be < maxInstances
+    
+    if (auxTaskConf.getMaxInstances().isPresent()) {
+      Integer maxInstances   = auxTaskConf.getMaxInstances().get();
+      int totalflexInstances = instances + getFlexibleInstances(serviceName);
+      //If total number of current and flex instances exceed maxInstances, throw an exception
       if (totalflexInstances > maxInstances) {
         LOGGER.error("Current number of active, staging, pending and requested instances: {}" +
                      ", while it is greater then max instances allowed: {}", totalflexInstances, maxInstances);

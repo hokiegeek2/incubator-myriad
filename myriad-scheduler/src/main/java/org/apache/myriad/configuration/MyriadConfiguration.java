@@ -212,8 +212,8 @@ public class MyriadConfiguration {
     return nodeManager;
   }
 
-  public Map<String, ServiceConfiguration> getServiceConfigurations() {
-    return this.services;
+  public Optional<Map<String, ServiceConfiguration>> getServiceConfigurations() {
+    return Optional.fromNullable(services);
   }
 
   public Optional<ServiceConfiguration> getServiceConfiguration(String taskName) {

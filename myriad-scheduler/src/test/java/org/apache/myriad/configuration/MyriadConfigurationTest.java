@@ -47,8 +47,10 @@ public class MyriadConfigurationTest {
   }
 
   @Test
-  public void serviceConfigurationTest() throws Exception {
-    Map<String, ServiceConfiguration> auxConfigs = cfg.getServiceConfigurations();
+  public void serviceConfigurationTest() throws Exception {  
+    assertTrue(cfg.getServiceConfigurations().isPresent());
+
+    Map<String, ServiceConfiguration> auxConfigs = cfg.getServiceConfigurations().get();
 
     assertNotNull(auxConfigs);
     assertEquals(auxConfigs.size(), 2);
