@@ -102,7 +102,7 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
       addYarnNodemanagerOpt(KEY_YARN_RM_HOSTNAME, rmHostName);
     }
 
-    if (cfg.getNodeManagerConfiguration().get().getCgroups()) {
+    if (cfg.getNodeManagerConfiguration().getCgroups()) {
       addYarnNodemanagerOpt(KEY_YARN_NM_CONTAINER_EXECUTOR_CLASS, VAL_YARN_NM_CONTAINER_EXECUTOR_CLASS);
       addYarnNodemanagerOpt(KEY_YARN_NM_LCE_RH_CLASS, VAL_YARN_NM_LCE_RH_CLASS);
 
@@ -135,7 +135,7 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
   }
 
   protected void appendCgroupsCmds(StringBuilder cmdLine) {
-    if (cfg.getNodeManagerConfiguration().get().getCgroups()) {
+    if (cfg.getNodeManagerConfiguration().getCgroups()) {
       cmdLine.append(" export TASK_DIR=`basename $PWD`;");
       cmdLine.append(" chmod +x /sys/fs/cgroup/cpu/mesos/$TASK_DIR;");
     }

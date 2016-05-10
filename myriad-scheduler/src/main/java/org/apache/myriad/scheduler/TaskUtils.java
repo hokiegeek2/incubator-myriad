@@ -151,11 +151,11 @@ public class TaskUtils {
   }
 
   public double getNodeManagerMemory() {
-    return cfg.getNodeManagerConfiguration().get().getJvmMaxMemoryMB();
+    return cfg.getNodeManagerConfiguration().getJvmMaxMemoryMB();
   }
   
   public double getNodeManagerCpus() {
-    return cfg.getNodeManagerConfiguration().get().getCpus();
+    return cfg.getNodeManagerConfiguration().getCpus();
   }
 
   public double getExecutorCpus() {

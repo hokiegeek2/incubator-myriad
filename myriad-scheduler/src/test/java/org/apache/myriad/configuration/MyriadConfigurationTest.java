@@ -97,8 +97,7 @@ public class MyriadConfigurationTest {
 
   @Test
   public void nodeManagerConfigurationTest() throws Exception {
-    assertTrue(cfg.getNodeManagerConfiguration().isPresent());
-    NodeManagerConfiguration config = cfg.getNodeManagerConfiguration().get();
+    NodeManagerConfiguration config = cfg.getNodeManagerConfiguration();
 
     assertFalse(config.getCgroups());
     assertEquals(new Double(0.2), config.getCpus());

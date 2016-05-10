@@ -208,8 +208,8 @@ public class MyriadConfiguration {
     return Optional.of(haEnabled).or(DEFAULT_HA_ENABLED);
   }
 
-  public Optional<NodeManagerConfiguration> getNodeManagerConfiguration() {
-    return Optional.fromNullable(nodeManager);
+  public NodeManagerConfiguration getNodeManagerConfiguration() {
+    return nodeManager;
   }
 
   public Map<String, ServiceConfiguration> getServiceConfigurations() {
