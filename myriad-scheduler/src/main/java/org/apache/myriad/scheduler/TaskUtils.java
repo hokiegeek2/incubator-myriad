@@ -185,10 +185,8 @@ public class TaskUtils {
     if (!auxConf.isPresent()) {
       throw new MyriadBadConfigurationException("Can not find profile for task name: " + taskName);
     }
-    if (!auxConf.get().getCpus().isPresent()) {
-      throw new MyriadBadConfigurationException("cpu is not defined for task with name: " + taskName);
-    }
-    return auxConf.get().getCpus().get();
+
+    return auxConf.get().getCpus();
   }
 
   public double getAuxTaskMemory(NMProfile profile, String taskName) throws MyriadBadConfigurationException {
@@ -199,10 +197,8 @@ public class TaskUtils {
     if (auxConf == null) {
       throw new MyriadBadConfigurationException("Can not find profile for task name: " + taskName);
     }
-    if (!auxConf.getJvmMaxMemoryMB().isPresent()) {
-      throw new MyriadBadConfigurationException("memory is not defined for task with name: " + taskName);
-    }
-    return auxConf.getJvmMaxMemoryMB().get();
+
+    return auxConf.getJvmMaxMemoryMB();
   }
 
   /**
