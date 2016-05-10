@@ -126,8 +126,8 @@ public class MyriadOperations {
       }
     }
 
-    final Double cpu = auxTaskConf.getCpus().or(ServiceConfiguration.DEFAULT_CPU);
-    final Double mem = auxTaskConf.getJvmMaxMemoryMB().or(ServiceConfiguration.DEFAULT_MEMORY);
+    final Double cpu = auxTaskConf.getCpus();
+    final Double mem = auxTaskConf.getJvmMaxMemoryMB();
 
     Collection<NodeTask> nodes = new HashSet<>();
     for (int i = 0; i < instances; i++) {
@@ -177,6 +177,7 @@ public class MyriadOperations {
         }
       }
     }
+
     int numStagingTasksScaledDown = numScaledDown - numPendingTasksScaledDown;
 
     Set<NodeTask> activeTasks = this.schedulerState.getActiveTasksByType(serviceName);

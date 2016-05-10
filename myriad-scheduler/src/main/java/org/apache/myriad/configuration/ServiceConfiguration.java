@@ -34,13 +34,18 @@ public class ServiceConfiguration {
   /**
    * Default number of CPU cores per Mesos executor JVM.
    */
-  public static final Double DEFAULT_CPU    = 0.1;
+  public static final Double DEFAULT_CPU_CORES = 0.1;
 
   /**
    * Default amount of RAM per Mesos executor JVM.
    */
-  public static final Double DEFAULT_MEMORY = 256.0;
+  public static final Double DEFAULT_JVM_MAX_MEMORY_MB  = 256.0;
 
+  /**
+   * Allot 10% more memory to account for JVM overhead.
+   */
+  public static final double JVM_OVERHEAD = 0.1;
+  
   /**
    * Translates to -Xmx for the Mesos executor JVM.
    */
@@ -93,17 +98,20 @@ public class ServiceConfiguration {
   @JsonProperty
   protected String serviceOptsName;
 
+  private Double generateMaxMemory() {
+    return (DEFAULT_JVM_MAX_MEMORY_MB) * (1 + JVM_OVERHEAD);
+  }
 
-  public Optional<Double> getJvmMaxMemoryMB() {
-    return Optional.fromNullable(jvmMaxMemoryMB);
+  public Double getJvmMaxMemoryMB() {
+    return Optional.of(jvmMaxMemoryMB).or(generateMaxMemory());
   }
 
   public Optional<String> getJvmOpts() {
     return Optional.fromNullable(jvmOpts);
   }
 
-  public Optional<Double> getCpus() {
-    return Optional.fromNullable(cpus);
+  public Double getCpus() {
+    return Optional.of(cpus).or(DEFAULT_CPU_CORES);
   }
 
   public String getTaskName() {
