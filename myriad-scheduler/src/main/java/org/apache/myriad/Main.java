@@ -244,8 +244,8 @@ public class Main {
       for (Map.Entry<String, ServiceConfiguration> entry : servicesConfigs.entrySet()) {
         final String taskPrefix = entry.getKey();
         ServiceConfiguration config = entry.getValue();
-        final Double cpu = config.getCpus().or(ServiceConfiguration.DEFAULT_CPU);
-        final Double mem = config.getJvmMaxMemoryMB().or(ServiceConfiguration.DEFAULT_MEMORY);
+        final Double cpu = config.getCpus();
+        final Double mem = config.getJvmMaxMemoryMB();
 
         profileManager.add(new ServiceResourceProfile(taskPrefix, cpu, mem));
         taskConstraintsManager.addTaskConstraints(taskPrefix, new ServiceTaskConstraints(cfg, taskPrefix));
