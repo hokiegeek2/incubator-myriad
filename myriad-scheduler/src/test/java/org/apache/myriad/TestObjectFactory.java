@@ -1,23 +1,41 @@
 package org.apache.myriad;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.net.NodeBase;
+import org.apache.hadoop.yarn.api.records.NodeId;
+import org.apache.hadoop.yarn.api.records.NodeState;
+import org.apache.hadoop.yarn.api.records.Resource;
+import org.apache.hadoop.yarn.api.records.impl.pb.ResourcePBImpl;
+import org.apache.hadoop.yarn.event.Dispatcher;
+import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
+import org.apache.hadoop.yarn.server.resourcemanager.ahs.RMApplicationHistoryWriter;
+import org.apache.hadoop.yarn.server.resourcemanager.recovery.FileSystemRMStateStore;
 import org.apache.hadoop.yarn.server.resourcemanager.recovery.MyriadFileSystemRMStateStore;
+import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.AMLivelinessMonitor;
+import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNode;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerNode;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.common.fica.FiCaSchedulerApp;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.common.fica.FiCaSchedulerNode;
+import org.apache.hadoop.yarn.server.resourcemanager.security.RMDelegationTokenSecretManager;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.FrameworkID;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.OfferID;
 import org.apache.mesos.Protos.SlaveID;
 import org.apache.myriad.configuration.MyriadConfiguration;
+import org.apache.myriad.policy.LeastAMNodesFirstPolicy;
 import org.apache.myriad.scheduler.MockSchedulerDriver;
 import org.apache.myriad.scheduler.MyriadDriver;
 import org.apache.myriad.scheduler.MyriadDriverManager;
+import org.apache.myriad.scheduler.MyriadOperations;
 import org.apache.myriad.scheduler.yarn.MyriadCapacityScheduler;
 import org.apache.myriad.scheduler.yarn.interceptor.CompositeInterceptor;
 import org.apache.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import org.apache.myriad.state.MockDispatcher;
+import org.apache.myriad.state.MockRMContext;
+import org.apache.myriad.state.MockRMNode;
+import org.apache.myriad.state.MyriadStateStore;
 import org.apache.myriad.state.SchedulerState;
 import org.apache.myriad.webapp.HttpConnectorProvider;
 import org.apache.myriad.webapp.MyriadWebServer;
@@ -33,8 +51,12 @@ import com.google.inject.servlet.GuiceFilter;
  * Factory for common objects utilized over 1..n Junit tests
  */
 public class TestObjectFactory {
-  public static SchedulerState getSchedulerState(MyriadConfiguration cfg) {
-    SchedulerState state = new SchedulerState(new MyriadFileSystemRMStateStore());
+  public static SchedulerState getSchedulerState(MyriadConfiguration cfg) throws Exception {
+	FileSystemRMStateStore store = new MyriadFileSystemRMStateStore();
+	Configuration conf = new Configuration();
+	conf.set("yarn.resourcemanager.fs.state-store.uri", "/tmp");
+	store.initInternal(conf);
+    SchedulerState state = new SchedulerState((MyriadStateStore) store);
     state.setFrameworkId(FrameworkID.newBuilder().setValue("mock-framework").build());
     return state;  
   }
@@ -52,7 +74,7 @@ public class TestObjectFactory {
     return scheduler;
   }
 
-  public static Server getJettyServer() {
+  private static Server getJettyServer() {
     Server server = new Server();
     ServletHandler context = new ServletHandler();
     ServletHolder holder = new ServletHolder(DefaultServlet.class);
@@ -86,5 +108,61 @@ public class TestObjectFactory {
     Protos.SlaveID sid = SlaveID.newBuilder().setValue(slaveId).build();
     Protos.FrameworkID fid = FrameworkID.newBuilder().setValue(frameworkId).build();
     return Protos.Offer.newBuilder().setHostname(host).setId(OfferID.newBuilder().setValue(offerId)).setSlaveId(sid).setFrameworkId(fid).build();  
+  }
+  
+  public static RMContext getRMContext(Configuration conf) throws Exception {
+	conf.set("yarn.resourcemanager.fs.state-store.uri", "file:///tmp/");
+    MockRMContext context = null;
+    Dispatcher dispatcher = new MockDispatcher();
+
+    RMApplicationHistoryWriter rmApplicationHistoryWriter = new RMApplicationHistoryWriter(); 
+    AMLivelinessMonitor amLivelinessMonitor = new AMLivelinessMonitor(dispatcher);
+    AMLivelinessMonitor amFinishingMonitor = new AMLivelinessMonitor(dispatcher);    
+    RMDelegationTokenSecretManager delegationTokenSecretManager = new RMDelegationTokenSecretManager(1, 1, 1, 1, context);
+
+    context = new MockRMContext();
+    context.setStateStore(TestObjectFactory.getStateStore(conf));
+    context.setAmLivelinessMonitor(amLivelinessMonitor);
+    context.setAmFinishingMonitor(amFinishingMonitor);
+    context.setRMApplicationHistoryWriter(rmApplicationHistoryWriter);
+    context.setRMDelegationTokenSecretManager(delegationTokenSecretManager);
+    return context;
+  }
+  
+  public static MyriadOperations getMyriadOperations(MyriadConfiguration cfg) throws Exception {
+    AbstractYarnScheduler<FiCaSchedulerApp, FiCaSchedulerNode> scheduler = TestObjectFactory.getYarnScheduler();
+    SchedulerState sState = TestObjectFactory.getSchedulerState(cfg);
+    sState.setFrameworkId(FrameworkID.newBuilder().setValue("mock-framework").build());
+
+    MyriadDriverManager manager = TestObjectFactory.getMyriadDriverManager();
+    MyriadWebServer webServer = TestObjectFactory.getMyriadWebServer(cfg);
+    CompositeInterceptor registry = new CompositeInterceptor();
+    LeastAMNodesFirstPolicy policy = new LeastAMNodesFirstPolicy(registry, scheduler, sState);
+	return new MyriadOperations(cfg, sState, policy, manager, webServer, TestObjectFactory.getRMContext(new Configuration()));	  
+  }
+  
+  public static SchedulerNode getSchedulerNode(NodeId nodeId, int vCores, int memory) {
+	RMNode node = getMockRMNode(nodeId, vCores, memory);
+	
+    return new FiCaSchedulerNode(node,true);
+  }
+	  
+  public static RMNode getMockRMNode(NodeId nodeId, int vCores, int memory) {
+    MockRMNode node = new MockRMNode(nodeId, NodeState.NEW, new NodeBase("/tmp"));
+    node.setCommandPort(8041);
+    node.setHostName("0.0.0.0");
+    node.setHttpPort(8042);
+    node.setRackName("r01n07");
+    node.setHttpAddress("localhost:8042");
+    node.setTotalCapability(getResource(vCores, memory));
+    
+    return node;
+  }
+  
+  public static Resource getResource(int vCores, int memory) {
+    Resource resource = new ResourcePBImpl();
+    resource.setVirtualCores(vCores);
+    resource.setMemory(memory);  
+    return resource;	  
   }
 }
