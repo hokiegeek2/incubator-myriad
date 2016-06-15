@@ -18,10 +18,10 @@
  */
 package org.apache.myriad.scheduler;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 import java.util.Set;
+
 import javax.inject.Inject;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos.Status;
 import org.apache.mesos.Protos.TaskID;
@@ -31,8 +31,13 @@ import org.apache.myriad.state.SchedulerState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Sets;
+
 /**
- * {@link TaskTerminator} is responsible for killing tasks.
+ * {@link TaskTerminator} is basically a reaper process responsible for killing
+ * tasks that remain marked as Killable within the {@link SchedulerState} class
+ * Following a kill task attempt in the MyriadDriver class. Killable tasks are
+ * in this state if the kill task attempt failed or a Mesos callback was not received.
  */
 public class TaskTerminator implements Runnable {
   private static final Logger LOGGER = LoggerFactory.getLogger(TaskTerminator.class);
@@ -40,7 +45,7 @@ public class TaskTerminator implements Runnable {
   private final SchedulerState schedulerState;
   private final MyriadDriverManager driverManager;
   private final OfferLifecycleManager offerLifeCycleManager;
-
+ 
   @Inject
   public TaskTerminator(SchedulerState schedulerState, MyriadDriverManager driverManager,
                         OfferLifecycleManager offerLifecycleManager) {
@@ -49,36 +54,44 @@ public class TaskTerminator implements Runnable {
     this.offerLifeCycleManager = offerLifecycleManager;
   }
 
+  /**
+   * Encapsulates logic that retrieves the collection of killable tasks from the
+   * SchedulerState object. If a task is in pending state, the task is simply 
+   * removed from SchedulerState. Any tasks in a running state were not successfully
+   * killed by Mesos or the callback failed, so the another kill attempt is made.
+   */
   @Override
   public void run() {
-    // clone a copy of the killable tasks
-    Set<TaskID> killableTasks = Sets.newHashSet(schedulerState.getKillableTasks());
+    if (CollectionUtils.isNotEmpty(schedulerState.getKillableTasks())) {
+      Set<TaskID> killableTasks = Sets.newHashSet(schedulerState.getKillableTasks());
 
-    if (CollectionUtils.isEmpty(killableTasks)) {
-      return;
-    }
-
-    Status driverStatus = driverManager.getDriverStatus();
-    if (Status.DRIVER_RUNNING != driverStatus) {
-      LOGGER.warn("Cannot kill tasks, as driver is not running. Status: {}", driverStatus);
-      return;
-    }
-
-    for (TaskID taskIdToKill : killableTasks) {
-      if (this.schedulerState.getPendingTaskIds().contains(taskIdToKill)) {
-        this.schedulerState.removeTask(taskIdToKill);
-      } else {
-        Status status = this.driverManager.kill(taskIdToKill);
-        NodeTask task = schedulerState.getTask(taskIdToKill);
-        if (task != null) {
-          offerLifeCycleManager.declineOutstandingOffers(task.getHostname());
-          this.schedulerState.removeTask(taskIdToKill);
+      for (TaskID taskId : killableTasks) {
+        if (isPendingTask(taskId)) {
+          handlePendingTask(taskId);
         } else {
-          schedulerState.removeTask(taskIdToKill);
-          LOGGER.warn("NodeTask with taskId: {} does not exist", taskIdToKill);
-        }
-        Preconditions.checkState(status == Status.DRIVER_RUNNING);
+          handleNonPendingTask(taskId);
+        } 
       }
     }
+  }
+
+  private void handlePendingTask(TaskID taskId) {
+    schedulerState.removeTask(taskId);
+  }
+
+  private void handleNonPendingTask(TaskID taskId) {
+    NodeTask task = schedulerState.getTask(taskId);
+    if (task != null) {    
+      Status status = driverManager.kill(taskId);
+      offerLifeCycleManager.declineOutstandingOffers(task.getHostname());
+
+      LOGGER.info("TaskTerminator killed NodeTask with taskId {} with driver status {}", taskId, status);
+    } else {
+      LOGGER.info("NodeTask with taskId: {} does not exist and likely was killed previously by MyriadDriver", taskId);
+    }    
+  }
+
+  private boolean isPendingTask(TaskID taskId) {
+    return !schedulerState.getPendingTaskIds().contains(taskId);
   }
 }
