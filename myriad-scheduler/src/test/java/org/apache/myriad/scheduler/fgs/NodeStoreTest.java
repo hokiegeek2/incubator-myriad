@@ -15,22 +15,22 @@ import org.junit.Test;
  */
 public class NodeStoreTest {
   NodeStore store = new NodeStore();
-  SchedulerNode sNode = TestObjectFactory.getSchedulerNode(NodeId.newInstance("localhost",8888), 2, 4096);
+  SchedulerNode sNode = TestObjectFactory.getSchedulerNode(NodeId.newInstance("0.0.0.0", 8888), 2, 4096);
 
   @Test
   public void testAddNode() throws Exception {
     store.add(sNode);
-    assertTrue(store.isPresent("localhost"));
-    assertNotNull(store.getNode("localhost"));
+    assertTrue(store.isPresent("0.0.0.0"));
+    assertNotNull(store.getNode("0.0.0.0"));
   }
 
   @Test
   public void testRemoveNode() throws Exception {
-    if(!store.isPresent("localhost")) {
+    if (!store.isPresent("0.0.0.0")) {
       store.add(sNode);
     }
-    store.remove("localhost");
-    assertFalse(store.isPresent("localhost"));
-    assertNull(store.getNode("localhost"));
+    store.remove("0.0.0.0");
+    assertFalse(store.isPresent("0.0.0.0"));
+    assertNull(store.getNode("0.0.0.0"));
   }
 }

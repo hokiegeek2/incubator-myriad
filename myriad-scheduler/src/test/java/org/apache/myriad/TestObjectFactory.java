@@ -52,10 +52,10 @@ import com.google.inject.servlet.GuiceFilter;
  */
 public class TestObjectFactory {
   public static SchedulerState getSchedulerState(MyriadConfiguration cfg) throws Exception {
-	FileSystemRMStateStore store = new MyriadFileSystemRMStateStore();
-	Configuration conf = new Configuration();
-	conf.set("yarn.resourcemanager.fs.state-store.uri", "/tmp");
-	store.initInternal(conf);
+    FileSystemRMStateStore store = new MyriadFileSystemRMStateStore();
+    Configuration conf = new Configuration();
+    conf.set("yarn.resourcemanager.fs.state-store.uri", "/tmp");
+    store.initInternal(conf);
     SchedulerState state = new SchedulerState((MyriadStateStore) store);
     state.setFrameworkId(FrameworkID.newBuilder().setValue("mock-framework").build());
     return state;  
@@ -109,9 +109,9 @@ public class TestObjectFactory {
     Protos.FrameworkID fid = FrameworkID.newBuilder().setValue(frameworkId).build();
     return Protos.Offer.newBuilder().setHostname(host).setId(OfferID.newBuilder().setValue(offerId)).setSlaveId(sid).setFrameworkId(fid).build();  
   }
-  
+
   public static RMContext getRMContext(Configuration conf) throws Exception {
-	conf.set("yarn.resourcemanager.fs.state-store.uri", "file:///tmp/");
+    conf.set("yarn.resourcemanager.fs.state-store.uri", "file:///tmp/");
     MockRMContext context = null;
     Dispatcher dispatcher = new MockDispatcher();
 
@@ -138,15 +138,14 @@ public class TestObjectFactory {
     MyriadWebServer webServer = TestObjectFactory.getMyriadWebServer(cfg);
     CompositeInterceptor registry = new CompositeInterceptor();
     LeastAMNodesFirstPolicy policy = new LeastAMNodesFirstPolicy(registry, scheduler, sState);
-	return new MyriadOperations(cfg, sState, policy, manager, webServer, TestObjectFactory.getRMContext(new Configuration()));	  
+    return new MyriadOperations(cfg, sState, policy, manager, webServer, TestObjectFactory.getRMContext(new Configuration()));
   }
   
   public static SchedulerNode getSchedulerNode(NodeId nodeId, int vCores, int memory) {
-	RMNode node = getMockRMNode(nodeId, vCores, memory);
-	
-    return new FiCaSchedulerNode(node,true);
+    RMNode node = getMockRMNode(nodeId, vCores, memory);
+    return new FiCaSchedulerNode(node, true);
   }
-	  
+
   public static RMNode getMockRMNode(NodeId nodeId, int vCores, int memory) {
     MockRMNode node = new MockRMNode(nodeId, NodeState.NEW, new NodeBase("/tmp"));
     node.setCommandPort(8041);
@@ -155,14 +154,14 @@ public class TestObjectFactory {
     node.setRackName("r01n07");
     node.setHttpAddress("localhost:8042");
     node.setTotalCapability(getResource(vCores, memory));
-    
+ 
     return node;
   }
-  
+
   public static Resource getResource(int vCores, int memory) {
     Resource resource = new ResourcePBImpl();
     resource.setVirtualCores(vCores);
-    resource.setMemory(memory);  
-    return resource;	  
+    resource.setMemory(memory);
+    return resource;
   }
 }

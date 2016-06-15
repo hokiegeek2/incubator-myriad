@@ -13,6 +13,9 @@ import org.apache.hadoop.yarn.server.api.protocolrecords.NodeHeartbeatResponse;
 import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNode;
 import org.apache.hadoop.yarn.server.resourcemanager.rmnode.UpdatedContainerInfo;
 
+/**
+ * Mock implementation of RMNode interface for unit test cases
+ */
 public class MockRMNode implements RMNode {
   String hostName;
   NodeId nodeId;
@@ -40,7 +43,7 @@ public class MockRMNode implements RMNode {
   }
   
   public NodeState getNodeState() {
-	return nodeState;
+    return nodeState;
   }
 
   public void setHostName(String hostName) {
@@ -88,7 +91,7 @@ public class MockRMNode implements RMNode {
   }
 
   public void setAppsToCleanup(List<ApplicationId> appsToCleanup) {
-	this.appsToCleanup = appsToCleanup;
+    this.appsToCleanup = appsToCleanup;
   }
   
   public void setLastHealthReportTime(long lastHealthReportTime) {
@@ -105,7 +108,7 @@ public class MockRMNode implements RMNode {
 
   @Override
   public NodeId getNodeID() {
-	return nodeId;
+    return nodeId;
   }
 
   @Override
@@ -115,17 +118,17 @@ public class MockRMNode implements RMNode {
 
   @Override
   public int getCommandPort() {
-	return commandPort;
+    return commandPort;
   }
 
   @Override
   public int getHttpPort() {
-	return httpPort;
+    return httpPort;
   }
 
   @Override
   public String getNodeAddress() {
-	return nodeAddress;
+    return nodeAddress;
   }
 
   @Override
@@ -140,17 +143,17 @@ public class MockRMNode implements RMNode {
 
   @Override
   public long getLastHealthReportTime() {
-	return 0;
+    return lastHealthReportTime;
   }
 
   @Override
   public String getNodeManagerVersion() {
-	return nodeManagerVersion;
+    return nodeManagerVersion;
   }
 
   @Override
   public Resource getTotalCapability() {
-	return totalCapability;
+    return totalCapability;
   }
 
   @Override
@@ -165,17 +168,17 @@ public class MockRMNode implements RMNode {
 
   @Override
   public NodeState getState() {
-	return nodeState;
+    return nodeState;
   }
 
   @Override
   public List<ContainerId> getContainersToCleanUp() {
-	return containersToCleanUp;
+    return containersToCleanUp;
   }
 
   @Override
   public List<ApplicationId> getAppsToCleanup() {
-	return appsToCleanup;
+    return appsToCleanup;
   }
 
   @Override
@@ -190,7 +193,7 @@ public class MockRMNode implements RMNode {
 
   @Override
   public List<UpdatedContainerInfo> pullContainerUpdates() {
-	return containerUpdates;
+    return containerUpdates;
   }  
 
   @Override
