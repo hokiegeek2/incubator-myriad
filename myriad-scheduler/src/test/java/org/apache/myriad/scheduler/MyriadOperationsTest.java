@@ -23,26 +23,31 @@ import org.junit.Test;
  * Unit tests for MyriadOperations class
  */
 public class MyriadOperationsTest extends BaseConfigurableTest {
-  MyriadOperations ops;
   ServiceResourceProfile small;
   Constraint constraint = new LikeConstraint("localhost", "host-[0-9]*.example.com");
-  SchedulerState sState;
+  MyriadWebServer webServer;
 
+  private SchedulerState getSchedulerState() throws Exception {
+    SchedulerState state = TestObjectFactory.getSchedulerState(this.cfg);
+    state.setFrameworkId(FrameworkID.newBuilder().setValue("mock-framework").build());
+    return state;
+  }
+  
+  private MyriadOperations getMyriadOperations(SchedulerState state) throws Exception {
+    MyriadDriverManager manager = TestObjectFactory.getMyriadDriverManager();
+
+    AbstractYarnScheduler<FiCaSchedulerApp, FiCaSchedulerNode> scheduler = TestObjectFactory.getYarnScheduler();
+    CompositeInterceptor registry = new CompositeInterceptor();
+    LeastAMNodesFirstPolicy policy = new LeastAMNodesFirstPolicy(registry, scheduler, state);
+    manager.startDriver();
+
+    return new MyriadOperations(cfg, state, policy, manager, webServer, TestObjectFactory.getRMContext(new Configuration()));    
+  }
+  
   @Before
   public void setUp() throws Exception {
     super.setUp();
-    AbstractYarnScheduler<FiCaSchedulerApp, FiCaSchedulerNode> scheduler = TestObjectFactory.getYarnScheduler();
-    sState = TestObjectFactory.getSchedulerState(cfg);
-    sState.setFrameworkId(FrameworkID.newBuilder().setValue("mock-framework").build());
-    
-    MyriadDriverManager manager = TestObjectFactory.getMyriadDriverManager();
-    MyriadWebServer webServer = TestObjectFactory.getMyriadWebServer(cfg);
-    CompositeInterceptor registry = new CompositeInterceptor();
-    LeastAMNodesFirstPolicy policy = new LeastAMNodesFirstPolicy(registry, scheduler, sState);
-
-    manager.startDriver();
-
-    ops = new MyriadOperations(cfg, sState, policy, manager, webServer, TestObjectFactory.getRMContext(new Configuration()));
+    webServer = TestObjectFactory.getMyriadWebServer(cfg);
     generateProfiles();
   }
 
@@ -52,34 +57,44 @@ public class MyriadOperationsTest extends BaseConfigurableTest {
 
   @Test 
   public void testFlexUpAndFlexDownCluster() throws Exception {
-    assertEquals(0, sState.getPendingTaskIds().size());
-    ops.flexUpCluster(small, 1, constraint);
+    SchedulerState sState = this.getSchedulerState();
+    MyriadOperations ops = this.getMyriadOperations(sState);
     assertEquals(1, sState.getPendingTaskIds().size());
+    ops.flexUpCluster(small, 1, constraint);
+    assertEquals(2, sState.getPendingTaskIds().size());
     ops.flexDownCluster(small, constraint, 1);
-    assertEquals(0, sState.getPendingTaskIds().size());
+    assertEquals(1, sState.getPendingTaskIds().size());
   }
 
   @Test
   public void testFlexUpAndFlexDownService() throws Exception {
+    SchedulerState sState = this.getSchedulerState();
+    MyriadOperations ops = this.getMyriadOperations(sState);
     ops.flexUpAService(1, "jobhistory");
-    assertEquals(1, sState.getPendingTasksByType("jobhistory").size());
+    assertEquals(2, sState.getPendingTasksByType("jobhistory").size());
     ops.flexDownAService(1, "jobhistory");
-    assertEquals(0, sState.getPendingTasksByType("jobhistory").size());
+    assertEquals(1, sState.getPendingTasksByType("jobhistory").size());
   }
 
   @Test(expected = MyriadBadConfigurationException.class)
   public void testFlexUpAServiceOverMaxInstances() throws Exception {
+    SchedulerState sState = this.getSchedulerState();
+    MyriadOperations ops = this.getMyriadOperations(sState);
     ops.flexUpAService(2, "jobhistory");
   }
 
   @Test
   public void testGetFlexibleInstances() throws Exception {
+    SchedulerState sState = this.getSchedulerState();
+    MyriadOperations ops = this.getMyriadOperations(sState);
     ops.flexUpAService(1, "jobhistory");
     assertEquals(1, ops.getFlexibleInstances("jobhistory").intValue());
   }
 
   @Test
   public void testShutdownCluster() throws Exception {
+    SchedulerState sState = this.getSchedulerState();
+    MyriadOperations ops  = this.getMyriadOperations(sState);
     ops.shutdownFramework();
   }
 }

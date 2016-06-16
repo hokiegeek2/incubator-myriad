@@ -47,7 +47,7 @@ import org.mortbay.jetty.servlet.ServletHolder;
 import com.google.inject.servlet.GuiceFilter;
 
 /**
- * Factory for common objects utilized for 1..n Junit tests
+ * Factory for common objects utilized for JUnit tests
  */
 public class TestObjectFactory {
   public static SchedulerState getSchedulerState(MyriadConfiguration cfg) throws Exception {
@@ -58,13 +58,12 @@ public class TestObjectFactory {
   }
 
   public static FileSystemRMStateStore getRMStateStore(Configuration conf) throws Exception {
-	FileSystemRMStateStore store = new MyriadFileSystemRMStateStore();
+    FileSystemRMStateStore store = new MyriadFileSystemRMStateStore();
     conf.set("yarn.resourcemanager.fs.state-store.uri", "/tmp");
     store.initInternal(conf);
-    
     return store;
   }
-  
+
   public static MyriadDriverManager getMyriadDriverManager() {
     return new MyriadDriverManager(new MyriadDriver(new MockSchedulerDriver()));
   }

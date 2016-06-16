@@ -61,7 +61,7 @@ mesosAuthenticationPrincipal:
 mesosAuthenticationSecretFilename:
 services:
    jobhistory:  
-     maxInstances: 1
+     maxInstances: 2
      jvmMaxMemoryMB: 1024
      cpus: 1
      ports:
