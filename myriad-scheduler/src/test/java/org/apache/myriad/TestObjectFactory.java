@@ -35,7 +35,6 @@ import org.apache.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import org.apache.myriad.state.MockDispatcher;
 import org.apache.myriad.state.MockRMContext;
 import org.apache.myriad.state.MockRMNode;
-import org.apache.myriad.state.MyriadStateStore;
 import org.apache.myriad.state.SchedulerState;
 import org.apache.myriad.webapp.HttpConnectorProvider;
 import org.apache.myriad.webapp.MyriadWebServer;
@@ -48,19 +47,24 @@ import org.mortbay.jetty.servlet.ServletHolder;
 import com.google.inject.servlet.GuiceFilter;
 
 /**
- * Factory for common objects utilized over 1..n Junit tests
+ * Factory for common objects utilized for 1..n Junit tests
  */
 public class TestObjectFactory {
   public static SchedulerState getSchedulerState(MyriadConfiguration cfg) throws Exception {
-    FileSystemRMStateStore store = new MyriadFileSystemRMStateStore();
     Configuration conf = new Configuration();
-    conf.set("yarn.resourcemanager.fs.state-store.uri", "/tmp");
-    store.initInternal(conf);
-    SchedulerState state = new SchedulerState((MyriadStateStore) store);
+    SchedulerState state = new SchedulerState(TestObjectFactory.getStateStore(conf));
     state.setFrameworkId(FrameworkID.newBuilder().setValue("mock-framework").build());
     return state;  
   }
 
+  public static FileSystemRMStateStore getRMStateStore(Configuration conf) throws Exception {
+	FileSystemRMStateStore store = new MyriadFileSystemRMStateStore();
+    conf.set("yarn.resourcemanager.fs.state-store.uri", "/tmp");
+    store.initInternal(conf);
+    
+    return store;
+  }
+  
   public static MyriadDriverManager getMyriadDriverManager() {
     return new MyriadDriverManager(new MyriadDriver(new MockSchedulerDriver()));
   }
