@@ -62,12 +62,22 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 /**
- * Main entry point for myriad scheduler
+ * Main is the bootstrap class for the Myriad scheduler, managing the lifecycles of
+ * the following components:
+ * 
+ *  1. MyriadDriverManager
+ *  2. MyriadWebServer
+ *  3. TaskTerminator
+ *  4. HealthCheckRegistry
+ *  
+ *  Main uses the Guice Injector framework to manage the Myriad object graph and is
+ *  configured by myriad-config-default.yml
  */
 public class Main {
   private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
   private MyriadWebServer webServer;
+  
   private ScheduledExecutorService terminatorService;
 
   private ScheduledExecutorService rebalancerService;
@@ -75,8 +85,18 @@ public class Main {
 
   private static Injector injector;
 
-  public static void initialize(Configuration hadoopConf, AbstractYarnScheduler yarnScheduler, RMContext rmContext,
-                                InterceptorRegistry registry) throws Exception {       
+  /**
+   * Delegates to the Guice injector instantiation of the Myriad object graph 
+   * and starts the Main class thread of execution.
+   * 
+   * @param hadoopConf
+   * @param yarnScheduler
+   * @param rmContext
+   * @param registry
+   * @throws Exception
+   */
+  public static void initialize(Configuration hadoopConf, AbstractYarnScheduler yarnScheduler, 
+          RMContext rmContext, InterceptorRegistry registry) throws Exception {       
     MyriadModule myriadModule = new MyriadModule("myriad-config-default.yml", hadoopConf, yarnScheduler, rmContext, registry);
     MesosModule mesosModule = new MesosModule();
     injector = Guice.createInjector(myriadModule, mesosModule, new WebAppGuiceModule());
@@ -89,6 +109,12 @@ public class Main {
     return injector;
   }
 
+  /**
+   * Initializes the Myriad object graph via MyriadConfiguration and starts
+   * the Mesos interface (MyriadDriverManager) as well as all Myriad services
+   * @param cfg MyriadConfiguration
+   * @throws Exception
+   */
   public void run(MyriadConfiguration cfg) throws Exception {
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("Bindings: " + injector.getAllBindings());
@@ -176,7 +202,7 @@ public class Main {
       String profile = entry.getKey();
       ServiceResourceProfile nodeManager = profileManager.get(profile);
       if (nodeManager == null) {
-        throw new RuntimeException("Invalid profile name '" + profile + "' specified in 'nmInstances'");
+        throw new IllegalArgumentException ("Invalid profile name '" + profile + "' specified in 'nmInstances'");
       }
       if (entry.getValue() > 0) {
         if (nodeManager.getCpus() > maxCpu) { // find the profile with largest number of cpus
@@ -186,7 +212,7 @@ public class Main {
       }
     }
     if (maxCpu <= 0 || maxMem <= 0) {
-      throw new RuntimeException(
+      throw new IllegalStateException (
           "Please configure 'nmInstances' with at least one instance/profile " + "with non-zero cpu/mem resources.");
     }
   }
