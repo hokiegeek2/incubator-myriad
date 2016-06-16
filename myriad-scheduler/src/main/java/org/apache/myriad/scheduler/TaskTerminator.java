@@ -36,8 +36,8 @@ import com.google.common.collect.Sets;
 /**
  * {@link TaskTerminator} is basically a reaper process responsible for killing
  * tasks that remain marked as Killable within the {@link SchedulerState} class
- * Following a kill task attempt in the MyriadDriver class. Killable tasks are
- * in this state if the kill task attempt failed or a Mesos callback was not received.
+ * Following a kill task attempt in the MyriadDriver class. Killable tasks remain in 
+ * Mesos if the kill task attempt failed or a Mesos callback was not received.
  */
 public class TaskTerminator implements Runnable {
   private static final Logger LOGGER = LoggerFactory.getLogger(TaskTerminator.class);
@@ -63,6 +63,10 @@ public class TaskTerminator implements Runnable {
   @Override
   public void run() {
     if (CollectionUtils.isNotEmpty(schedulerState.getKillableTasks())) {
+      /*
+       * Clone the killable task collection, iterate through all of them, and 
+       * process the pending and non-pending tasks
+       */
       Set<TaskID> killableTasks = Sets.newHashSet(schedulerState.getKillableTasks());
 
       for (TaskID taskId : killableTasks) {
@@ -76,12 +80,18 @@ public class TaskTerminator implements Runnable {
   }
 
   private void handlePendingTask(TaskID taskId) {
+    //since the task is pending and has not started, simply remove it from SchedulerState task collection
     schedulerState.removeTask(taskId);
   }
 
   private void handleNonPendingTask(TaskID taskId) {
     NodeTask task = schedulerState.getTask(taskId);
-    if (task != null) {    
+    if (task != null) {
+      /*
+       * kill the task and decline additional offers for it, but hold off removing from SchedulerState. 
+       * Removal of the killable task must be done following invocation of statusUpdate callback method
+       * which constitutes acknowledgement from Mesos that the task kill request succeeded.
+       */
       Status status = driverManager.kill(taskId);
       offerLifeCycleManager.declineOutstandingOffers(task.getHostname());
 
