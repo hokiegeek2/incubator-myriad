@@ -97,7 +97,7 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
       }
       return;
     }
-    LOGGER.info("Received offers {}", offers.size());
+    LOGGER.debug("Received offers {}", offers.size());
     LOGGER.debug("Pending tasks: {}", this.schedulerState.getPendingTaskIds());
     driverOperationLock.lock();
     try {
@@ -136,7 +136,7 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
                 offerIds.add(offer.getId());
                 List<TaskInfo> tasks = new ArrayList<>();
                 tasks.add(task);
-                LOGGER.info("Launching task: {} using offer: {}", task.getTaskId().getValue(), offer.getId());
+                LOGGER.info("Launching task with it: {} using offer: {}", task.getTaskId().getValue(), offer.getId());
                 LOGGER.debug("Launching task: {} with profile: {} using offer: {}", task, profile, offer);
                 driver.launchTasks(offerIds, tasks);
                 schedulerState.makeTaskStaging(pendingTaskId);
