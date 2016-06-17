@@ -59,27 +59,31 @@ public class MyriadOperationsTest extends BaseConfigurableTest {
   public void testFlexUpAndFlexDownCluster() throws Exception {
     SchedulerState sState = this.getSchedulerState();
     MyriadOperations ops = this.getMyriadOperations(sState);
-    assertEquals(1, sState.getPendingTaskIds().size());
+    assertEquals(0, sState.getPendingTaskIds().size());
     ops.flexUpCluster(small, 1, constraint);
-    assertEquals(2, sState.getPendingTaskIds().size());
-    ops.flexDownCluster(small, constraint, 1);
     assertEquals(1, sState.getPendingTaskIds().size());
+    ops.flexDownCluster(small, constraint, 1);
+    assertEquals(0, sState.getPendingTaskIds().size());
   }
-
+  
   @Test
   public void testFlexUpAndFlexDownService() throws Exception {
     SchedulerState sState = this.getSchedulerState();
     MyriadOperations ops = this.getMyriadOperations(sState);
     ops.flexUpAService(1, "jobhistory");
-    assertEquals(2, sState.getPendingTasksByType("jobhistory").size());
-    ops.flexDownAService(1, "jobhistory");
     assertEquals(1, sState.getPendingTasksByType("jobhistory").size());
+    ops.flexDownAService(1, "jobhistory");
+    assertEquals(0, sState.getPendingTasksByType("jobhistory").size());
   }
 
   @Test(expected = MyriadBadConfigurationException.class)
   public void testFlexUpAServiceOverMaxInstances() throws Exception {
     SchedulerState sState = this.getSchedulerState();
     MyriadOperations ops = this.getMyriadOperations(sState);
+    /*
+     * There is 1 jobhhistory task loaded from configuration file, so flexing up
+     * by two should result in MyriadBadConfigurationException
+     */
     ops.flexUpAService(2, "jobhistory");
   }
 
@@ -87,6 +91,7 @@ public class MyriadOperationsTest extends BaseConfigurableTest {
   public void testGetFlexibleInstances() throws Exception {
     SchedulerState sState = this.getSchedulerState();
     MyriadOperations ops = this.getMyriadOperations(sState);
+    assertEquals(0, ops.getFlexibleInstances("jobhistory").intValue());
     ops.flexUpAService(1, "jobhistory");
     assertEquals(1, ops.getFlexibleInstances("jobhistory").intValue());
   }

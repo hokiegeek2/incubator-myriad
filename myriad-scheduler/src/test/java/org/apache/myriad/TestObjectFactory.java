@@ -52,7 +52,7 @@ import com.google.inject.servlet.GuiceFilter;
 public class TestObjectFactory {
   public static SchedulerState getSchedulerState(MyriadConfiguration cfg) throws Exception {
     Configuration conf = new Configuration();
-    SchedulerState state = new SchedulerState(TestObjectFactory.getStateStore(conf));
+    SchedulerState state = new SchedulerState(TestObjectFactory.getStateStore(conf, false));
     state.setFrameworkId(FrameworkID.newBuilder().setValue("mock-framework").build());
     return state;  
   }
@@ -97,12 +97,14 @@ public class TestObjectFactory {
     return new MyriadWebServer(server, connector, new GuiceFilter());
   }
   
-  public static MyriadFileSystemRMStateStore getStateStore(Configuration conf) throws Exception {
+  public static MyriadFileSystemRMStateStore getStateStore(Configuration conf, boolean loadState) throws Exception {
     conf.set("yarn.resourcemanager.fs.state-store.uri", "file:///tmp/");
     MyriadFileSystemRMStateStore store = new MyriadFileSystemRMStateStore();
     store.init(conf);
     store.start();
-    store.loadState();   
+    if (loadState) {
+      store.loadState(); 
+    }
     store.setRMDispatcher(new MockDispatcher());
     return store;
   }
@@ -124,7 +126,7 @@ public class TestObjectFactory {
     RMDelegationTokenSecretManager delegationTokenSecretManager = new RMDelegationTokenSecretManager(1, 1, 1, 1, context);
 
     context = new MockRMContext();
-    context.setStateStore(TestObjectFactory.getStateStore(conf));
+    context.setStateStore(TestObjectFactory.getStateStore(conf, false));
     context.setAmLivelinessMonitor(amLivelinessMonitor);
     context.setAmFinishingMonitor(amFinishingMonitor);
     context.setRMApplicationHistoryWriter(rmApplicationHistoryWriter);
