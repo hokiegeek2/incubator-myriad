@@ -18,12 +18,14 @@
  */
 package org.apache.myriad.scheduler.fgs;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
 import javax.inject.Inject;
 
 import org.apache.hadoop.yarn.api.records.Container;
@@ -45,7 +47,6 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeUpdateS
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.SchedulerEvent;
 import org.apache.hadoop.yarn.util.resource.Resources;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.Status;
 import org.apache.myriad.configuration.NodeManagerConfiguration;
 import org.apache.myriad.executor.ContainerTaskStatusRequest;
 import org.apache.myriad.scheduler.MyriadDriver;
@@ -57,10 +58,6 @@ import org.apache.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import org.apache.myriad.state.SchedulerState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * Manages the capacity exposed by NodeManager. It uses the offers available
@@ -75,7 +72,7 @@ import com.google.common.collect.Sets;
  */
 public class YarnNodeCapacityManager extends BaseInterceptor {
   private static final Logger LOGGER = LoggerFactory.getLogger(YarnNodeCapacityManager.class);
-  
+
   private final AbstractYarnScheduler yarnScheduler;
   private final RMContext rmContext;
   private final MyriadDriver myriadDriver;
@@ -130,30 +127,13 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
   }
 
   private void removeYarnTask(RMContainer rmContainer) {
-    if (containersNotNull(rmContainer)) {
+    if (rmContainer != null && rmContainer.getContainer() != null) {
       Protos.TaskID taskId = containerToTaskId(rmContainer);
-
-      /*
-       * Initiate the MyriadDriver kill task request. Important note: the method return is a Protos.Status object 
-       * indicating the state of the Mesos SchedulerDriver. If the state is anything other than DRIVER_RUNNING, 
-       * it is possible the kill request failed due to SchedulerDriver being in a bad state.
-       * 
-       * Irrespective of the SchedulerDriver state, the task needs to be marked as killable in the SchedulerState 
-       * object so the TaskTerminator will attempt to kill the task if it is still in Mesos.
-       */
-      Status kStatus = myriadDriver.kill(taskId);
-      
-      /*
-       * Mark the task as killable within the ServerState object to flag the task for the TaskTerminator daemon. 
-       * Note: the task remains in the SchedulerState 
-       */
+      //TODO (darinj) Reliable messaging
       state.makeTaskKillable(taskId);
-
-      if (!kStatus.equals(Status.DRIVER_RUNNING)) {
-        LOGGER.warn("The myriadDriver.kill request for {} may have been invoked on MyriadDriver in non-RUNNING state", taskId);
-      }
-            
-      Node node = retrieveNode(rmContainer);
+      myriadDriver.kill(taskId);
+      String hostname = rmContainer.getContainer().getNodeId().getHost();
+      Node node = nodeStore.getNode(hostname);
       if (node != null) {
         RMNode rmNode = node.getNode().getRMNode();
         Resource resource = rmContainer.getContainer().getResource();
@@ -161,20 +141,11 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
         LOGGER.info("Removed task yarn_{} with exit status freeing {} cpu and {} mem.", rmContainer.getContainer().toString(),
             rmContainer.getContainerExitStatus(), resource.getVirtualCores(), resource.getMemory());
       } else {
-        LOGGER.warn("The Node for the {} host was not found", rmContainer.getContainer().getNodeId().getHost());
+        LOGGER.warn(hostname + " not found");
       }
     }
   }
 
-  private Node retrieveNode(RMContainer container) {
-    String hostname = container.getContainer().getNodeId().getHost();
-    return nodeStore.getNode(hostname);
-  }
-
-  private boolean containersNotNull(RMContainer rmContainer) {
-    return (rmContainer != null && rmContainer.getContainer() != null);
-  }
-  
   @Override
   public void afterSchedulerEventHandled(SchedulerEvent event) {
     switch (event.getType()) {
@@ -211,7 +182,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
 
   /**
    * Checks if any containers were allocated in the current scheduler run and
-   * launches the corresponding Mesos tasks. It also updates the node
+   * launches the corresponding Mesos tasks. It also udpates the node
    * capacity depending on what portion of the consumed offers were actually
    * used.
    */
@@ -261,22 +232,11 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
     node.removeContainerSnapshot();
   }
 
-  /**
-   * Increments the capacity for the specified RMNode
-   * 
-   * @param rmNode
-   * @param removedCapacity
-   */
+
   public void incrementNodeCapacity(RMNode rmNode, Resource addedCapacity) {
     setNodeCapacity(rmNode, Resources.add(rmNode.getTotalCapability(), addedCapacity));
   }
 
-  /**
-   * Decrements the capacity for the specified RMNode
-   * 
-   * @param rmNode
-   * @param removedCapacity
-   */
   public void decrementNodeCapacity(RMNode rmNode, Resource removedCapacity) {
     setNodeCapacity(rmNode, Resources.subtract(rmNode.getTotalCapability(), removedCapacity));
   }
