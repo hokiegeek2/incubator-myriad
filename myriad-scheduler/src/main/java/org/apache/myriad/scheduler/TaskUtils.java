@@ -167,6 +167,10 @@ public class TaskUtils {
     return cfg.getNodeManagerConfiguration().getJvmMaxMemoryMB();
   }
   
+  public double getNodeManagerMaxCpus() {
+    return cfg.getNodeManagerConfiguration().getMaxCpus();
+  }
+  
   public double getNodeManagerCpus() {
     return cfg.getNodeManagerConfiguration().getCpus();
   }
@@ -191,7 +195,7 @@ public class TaskUtils {
   }
 
   public double getAuxTaskCpus(NMProfile profile, String taskName) throws MyriadBadConfigurationException {
-    if (taskName.startsWith(NodeManagerConfiguration.NM_TASK_PREFIX)) {
+    if (taskName.startsWith(NodeManagerConfiguration.DEFAULT_NM_TASK_PREFIX)) {
       return getAggregateCpus(profile);
     }
 
@@ -204,7 +208,7 @@ public class TaskUtils {
   }
 
   public double getAuxTaskMemory(NMProfile profile, String taskName) throws MyriadBadConfigurationException {
-    if (taskName.startsWith(NodeManagerConfiguration.NM_TASK_PREFIX)) {
+    if (taskName.startsWith(NodeManagerConfiguration.DEFAULT_NM_TASK_PREFIX)) {
       return getAggregateMemory(profile);
     }
   

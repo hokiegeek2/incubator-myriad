@@ -39,7 +39,6 @@ public class MyriadOperationsTest extends BaseConfigurableTest {
   public void setUp() throws Exception {
     super.setUp();
     AbstractYarnScheduler<FiCaSchedulerApp, FiCaSchedulerNode> scheduler = TestObjectFactory.getYarnScheduler();
-    //sState = new SchedulerState(new MyriadFileSystemRMStateStore());
     sState = TestObjectFactory.getSchedulerState(cfg);
     sState.setFrameworkId(FrameworkID.newBuilder().setValue("mock-framework").build());
 
@@ -79,19 +78,19 @@ public class MyriadOperationsTest extends BaseConfigurableTest {
 
   @Test 
   public void testFlexUpAndFlexDownCluster() throws Exception {
-    assertEquals(0, sState.getPendingTaskIds().size());
-    ops.flexUpCluster(small, 1, constraint);
     assertEquals(1, sState.getPendingTaskIds().size());
+    ops.flexUpCluster(small, 1, constraint);
+    assertEquals(2, sState.getPendingTaskIds().size());
     ops.flexDownCluster(small, constraint, 1);
-    assertEquals(0, sState.getPendingTaskIds().size());
+    assertEquals(1, sState.getPendingTaskIds().size());
   }
 
   @Test
   public void testFlexUpAndFlexDownService() throws Exception {
     ops.flexUpAService(1, "jobhistory");
-    assertEquals(1, sState.getPendingTasksByType("jobhistory").size());
+    assertEquals(2, sState.getPendingTasksByType("jobhistory").size());
     ops.flexDownAService(1, "jobhistory");
-    assertEquals(0, sState.getPendingTasksByType("jobhistory").size());
+    assertEquals(1, sState.getPendingTasksByType("jobhistory").size());
   }
 
   @Test(expected = MyriadBadConfigurationException.class)

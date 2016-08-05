@@ -144,7 +144,7 @@ public class Main {
     LOGGER.info("Initializing Profiles");
     ServiceProfileManager profileManager = injector.getInstance(ServiceProfileManager.class);
     TaskConstraintsManager taskConstraintsManager = injector.getInstance(TaskConstraintsManager.class);
-    taskConstraintsManager.addTaskConstraints(NodeManagerConfiguration.NM_TASK_PREFIX, new TaskFactory.NMTaskConstraints());
+    taskConstraintsManager.addTaskConstraints(NodeManagerConfiguration.DEFAULT_NM_TASK_PREFIX, new TaskFactory.NMTaskConstraints());
     Map<String, Map<String, String>> profiles = injector.getInstance(MyriadConfiguration.class).getProfiles();
     TaskUtils taskUtils = injector.getInstance(TaskUtils.class);
     if (MapUtils.isNotEmpty(profiles)) {
@@ -198,19 +198,19 @@ public class Main {
     SchedulerState schedulerState = injector.getInstance(SchedulerState.class);
 
     Set<org.apache.myriad.state.NodeTask> launchedNMTasks = new HashSet<>();
-    launchedNMTasks.addAll(schedulerState.getPendingTasksByType(NodeManagerConfiguration.NM_TASK_PREFIX));
+    launchedNMTasks.addAll(schedulerState.getPendingTasksByType(NodeManagerConfiguration.DEFAULT_NM_TASK_PREFIX));
     if (!launchedNMTasks.isEmpty()) {
       LOGGER.info("{} NM(s) in pending state. Not launching additional NMs", launchedNMTasks.size());
       return;
     }
 
-    launchedNMTasks.addAll(schedulerState.getStagingTasksByType(NodeManagerConfiguration.NM_TASK_PREFIX));
+    launchedNMTasks.addAll(schedulerState.getStagingTasksByType(NodeManagerConfiguration.DEFAULT_NM_TASK_PREFIX));
     if (!launchedNMTasks.isEmpty()) {
       LOGGER.info("{} NM(s) in staging state. Not launching additional NMs", launchedNMTasks.size());
       return;
     }
 
-    launchedNMTasks.addAll(schedulerState.getActiveTasksByType(NodeManagerConfiguration.NM_TASK_PREFIX));
+    launchedNMTasks.addAll(schedulerState.getActiveTasksByType(NodeManagerConfiguration.DEFAULT_NM_TASK_PREFIX));
     if (!launchedNMTasks.isEmpty()) {
       LOGGER.info("{} NM(s) in active state. Not launching additional NMs", launchedNMTasks.size());
       return;

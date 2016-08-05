@@ -44,9 +44,10 @@ profiles:
 
 rebalancer: 
 nodemanager:
-  jvmMaxMemoryMB: 1024
-  cpus: 0.2
+  jvmMaxMemoryMB: 2048
+  cpus: 0.8
   cgroups: false
+  maxCpus: 4
 executor:
   jvmMaxMemoryMB: 256
   path: file:///usr/local/libexec/mesos/myriad-executor-runnable-0.1.0.jar
@@ -61,7 +62,7 @@ mesosAuthenticationPrincipal:
 mesosAuthenticationSecretFilename:
 services:
    jobhistory:  
-     maxInstances: 1
+     maxInstances: 2
      jvmMaxMemoryMB: 1024
      cpus: 1
      ports:

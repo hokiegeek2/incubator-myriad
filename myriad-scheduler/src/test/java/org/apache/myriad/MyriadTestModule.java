@@ -58,7 +58,7 @@ public class MyriadTestModule extends AbstractModule {
     bind(MyriadConfiguration.class).toInstance(cfg);
 
     MapBinder<String, TaskFactory> mapBinder = MapBinder.newMapBinder(binder(), String.class, TaskFactory.class);
-    mapBinder.addBinding(NodeManagerConfiguration.NM_TASK_PREFIX).to(NMTaskFactoryImpl.class).in(Scopes.SINGLETON);
+    mapBinder.addBinding(NodeManagerConfiguration.DEFAULT_NM_TASK_PREFIX).to(NMTaskFactoryImpl.class).in(Scopes.SINGLETON);
     Map<String, ServiceConfiguration> auxServicesConfigs = cfg.getServiceConfigurations();
     for (Map.Entry<String, ServiceConfiguration> entry : auxServicesConfigs.entrySet()) {
       String taskFactoryClass = entry.getValue().getTaskFactoryImplName().orNull();
