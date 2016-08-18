@@ -43,7 +43,6 @@ import org.apache.myriad.scheduler.NMProfile;
 import org.apache.myriad.scheduler.Rebalancer;
 import org.apache.myriad.scheduler.ServiceProfileManager;
 import org.apache.myriad.scheduler.ServiceResourceProfile;
-import org.apache.myriad.scheduler.TaskFactory;
 import org.apache.myriad.scheduler.TaskTerminator;
 import org.apache.myriad.scheduler.TaskUtils;
 import org.apache.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
@@ -170,11 +169,7 @@ public class Main {
     LOGGER.info("Initializing Profiles");
     ServiceProfileManager profileManager = injector.getInstance(ServiceProfileManager.class);
 
-    TaskConstraintsManager taskConstraintsManager = injector.getInstance(TaskConstraintsManager.class);
-    taskConstraintsManager.addTaskConstraints(NodeManagerConfiguration.DEFAULT_NM_TASK_PREFIX, new TaskFactory.NMTaskConstraints());
     Map<String, Map<String, String>> profiles = injector.getInstance(MyriadConfiguration.class).getProfiles();
-    NodeManagerConfiguration cfg = injector.getInstance(MyriadConfiguration.class).getNodeManagerConfiguration();
-
     TaskUtils taskUtils = injector.getInstance(TaskUtils.class);
     if (MapUtils.isNotEmpty(profiles)) {
       for (Map.Entry<String, Map<String, String>> profile : profiles.entrySet()) {
@@ -183,7 +178,7 @@ public class Main {
           Long cpu = Long.parseLong(profileResourceMap.get("cpu"));
           Long mem = Long.parseLong(profileResourceMap.get("mem"));
           ServiceResourceProfile serviceProfile = new ExtendedResourceProfile(new NMProfile(profile.getKey(), cpu, mem),
-              cfg.getCpus(), cfg.getJvmMaxMemoryMB(), cfg.getPorts());
+              taskUtils.getNodeManagerCpus(), taskUtils.getNodeManagerMemory(), taskUtils.getNodeManagerPorts());
           profileManager.add(serviceProfile);
         } else {
           LOGGER.error("Invalid definition for profile: " + profile.getKey());

@@ -26,6 +26,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNode;
 import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNodeImpl;
 import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNodeStatusEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerNode;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.common.fica.FiCaSchedulerApp;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.common.fica.FiCaSchedulerNode;
 import org.apache.hadoop.yarn.util.resource.Resources;
@@ -202,8 +203,9 @@ public class TestObjectFactory {
     return scheduler;
   }
   
-  public static SchedulerNode getSchedulerNode(NodeId id, int cores, int memory) {
-    
+  public static SchedulerNode getSchedulerNode(String host, int port, int cores, int memory) {
+    RMNode node = TestObjectFactory.getRMNode(host, port, cores, memory);
+    return new FiCaSchedulerNode(node, false);
   }
   
   public static MyriadFairScheduler getYarnFairScheduler() {
