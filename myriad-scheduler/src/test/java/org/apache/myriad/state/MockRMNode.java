@@ -159,6 +159,11 @@ public class MockRMNode implements RMNode {
   }
 
   @Override
+  public void resetLastNodeHeartBeatResponse() {
+    System.out.println("Hello");
+  }
+
+  @Override
   public long getLastHealthReportTime() {
     return lastHealthReportTime;
   }
