@@ -29,6 +29,9 @@ buildscript {
     repositories {
         jcenter()
         mavenCentral()
+        maven {
+           url "https://repository.cloudera.com/artifactory/cloudera-repos/"
+        }
     }
 
     dependencies {
@@ -38,6 +41,9 @@ buildscript {
 
 repositories {
     mavenCentral()
+    maven {
+        url "https://repository.cloudera.com/artifactory/cloudera-repos/"
+    }
 }
 
 idea {
@@ -73,7 +79,7 @@ subprojects {
         mesosVer = "0.28.1"
         //Allows passing -PhadoopVer=2.6.0 from command line
         if(!project.hasProperty('hadoopVer')) {
-            hadoopVer = "2.7.0"
+            hadoopVer = "2.6.0-cdh5.8.0"
         }
         metricsVer = "3.1.0"
     }
@@ -97,6 +103,10 @@ subprojects {
     repositories {
         mavenCentral()
         mavenLocal()
+        maven {
+           url "https://repository.cloudera.com/artifactory/cloudera-repos/"
+        }
+
     }
 
     dependencies {
