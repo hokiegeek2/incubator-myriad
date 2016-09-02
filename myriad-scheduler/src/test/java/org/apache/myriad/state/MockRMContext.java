@@ -202,7 +202,7 @@ public class MockRMContext implements RMContext {
   }
 
   @Override
-  public ConcurrentMap<String, RMNode> getInactiveRMNodes() {
+  public ConcurrentMap<NodeId, RMNode> getInactiveRMNodes() {
     return null;
   }
 
@@ -355,7 +355,6 @@ public class MockRMContext implements RMContext {
     return false;
   }
 
-  @Override
   public Configuration getYarnConfiguration() {
     return this.yarnConfiguration;
   }

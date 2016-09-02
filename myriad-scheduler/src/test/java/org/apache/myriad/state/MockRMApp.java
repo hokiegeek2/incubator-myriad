@@ -38,6 +38,8 @@ import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMAppMetrics;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMAppState;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.RMAppAttempt;
 import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNode;
+import org.apache.hadoop.yarn.api.records.LogAggregationStatus;
+import org.apache.hadoop.yarn.server.api.protocolrecords.LogAggregationReport;
 
 /**
  * Mock RMApp for unit tests
@@ -212,8 +214,17 @@ public class MockRMApp implements RMApp {
     return null;
   }
 
-  @Override
   public ResourceRequest getAMResourceRequest() {
+    return null;
+  }
+
+  @Override
+  public Map<NodeId, LogAggregationReport> getLogAggregationReportsForApp() { 
+    return null;
+  }
+  
+  @Override
+  public LogAggregationStatus getLogAggregationStatusForAppReport() {
     return null;
   }
 }
