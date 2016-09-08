@@ -34,19 +34,24 @@ ENV HADOOP_CONF_DIR=/usr/lib/hadoop/etc/hadoop
 ENV JAVA_HOME=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.111-2.6.7.2.el7_2.x86_64
 ENV YARN_HOME=/usr/lib/hadoop-yarn
 ENV HADOOP_YARN_HOME=/usr/lib/hadoop-yarn
+ENV YARN_CONF_DIR=$YARN_HOME/etc/hadoop
 ENV MESOS_NATIVE_LIBRARY=/usr/local/lib/libmesos.so
 ENV MESOS_VER=0.28.1
 ENV HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec/
 
 # Setup mesosphere repositories
 RUN yum -y update
-RUN yum install -y java-1.7.0-openjdk* wget sudo lsb-release
+RUN yum install -y java-1.7.0-openjdk* wget sudo subversion cyrus-sasl-md5 lsb-release
 RUN ln -s /usr/lib/jvm/java-1.7.0-openjdk-1.7.0.111-2.6.7.2.el7_2.x86_64 /usr/java
 
 RUN sed -i 's/Defaults[ ]* requiretty/#Defaults      requiretty/g' /etc/sudoers
 RUN echo "yarn ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 # Setup mesosphere repositories
-RUN rpm -Uvh http://repos.mesosphere.com/el/7/noarch/RPMS/mesosphere-el-repo-7-1.noarch.rpm
+#RUN rpm -Uvh http://repos.mesosphere.com/el/7/noarch/RPMS/mesosphere-el-repo-7-1.noarch.rpm
+
+WORKDIR /tmp
+RUN wget http://repos.mesosphere.com/el/7/x86_64/RPMS/mesos-0.28.1-2.0.20.centos701406.x86_64.rpm
+RUN rpm -Uvh mesos-0.28.1-2.0.20.centos701406.x86_64.rpm
 RUN yum -y update
 
 # Install Mesos
@@ -83,4 +88,5 @@ ADD myriad-etc/* /usr/lib/hadoop-yarn/etc/hadoop/
 RUN chown -R root:root /usr/lib/hadoop-yarn/etc/hadoop
 USER yarn
 #CMD bash
-CMD /usr/lib/hadoop-yarn/bin/yarn resourcemanager
+WORKDIR /usr/lib/hadoop-yarn
+CMD bin/yarn resourcemanager
