@@ -64,9 +64,6 @@ RUN rpm -ivh cloudera-cdh-5-0.x86_64.rpm
 RUN rpm --import https://archive.cloudera.com/cdh5/redhat/7/x86_64/cdh/RPM-GPG-KEY-cloudera
 RUN yum -y install hadoop-mapreduce-historyserver hadoop-yarn-proxyserver hadoop-yarn-resourcemanager
 
-RUN echo "export MESOS_NATIVE_JAVA_LIBRARY=/usr/local/lib/libmesos.so" >> ${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
-RUN echo "export MESOS_NATIVE_JAVA_LIBRARY=/usr/local/lib/libmesos.so" >> ${HADOOP_HOME}/etc/hadoop/yarn-env.sh
-
 # Cleanup
 RUN rm -rf cloudera-cdh-5-0.x86_64.rpm mesosphere-el-repo-7-1.noarch.rpm 
 
@@ -74,19 +71,13 @@ RUN rm -rf cloudera-cdh-5-0.x86_64.rpm mesosphere-el-repo-7-1.noarch.rpm
 ADD ./libs/* /usr/lib/hadoop-yarn/lib/
 
 # Initialize hadoop confs with env vars
-ADD myriad-bin/configure-yarn.sh /configure-yarn.sh
-RUN chmod 777 /configure-yarn.sh
-RUN /configure-yarn.sh
-ADD myriad-bin/link-mesos-hadoop.sh /link-mesos-hadoop.sh
-RUN chmod 777 /link-mesos-hadoop.sh
-RUN /link-mesos-hadoop.sh
-
 RUN echo "export MESOS_NATIVE_JAVA_LIBRARY=/usr/local/lib/libmesos.so" >> /usr/lib/hadoop-yarn/etc/hadoop/hadoop-env.sh
-RUN chmod +x /usr/lib/hadoop-yarn/etc/hadoop/hadoop-env.sh
-
+RUN chmod +x /usr/lib/hadoop-yarn/etc/hadoop/hadoop-env.sh   
+RUN mkdir -p /var/lib/hadoop-yarn/cache/yarn/nm-local-dir
+RUN mkdir -p /var/log/hadoop-yarn/containers
+RUN chmod -R 777 /var
 ADD myriad-etc/* /usr/lib/hadoop-yarn/etc/hadoop/
 RUN chown -R root:root /usr/lib/hadoop-yarn/etc/hadoop
 USER yarn
-#CMD bash
 WORKDIR /usr/lib/hadoop-yarn
 CMD bin/yarn resourcemanager
