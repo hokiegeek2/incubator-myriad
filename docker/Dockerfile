@@ -47,7 +47,6 @@ RUN ln -s /usr/lib/jvm/java-1.7.0-openjdk-1.7.0.111-2.6.7.2.el7_2.x86_64 /usr/ja
 RUN sed -i 's/Defaults[ ]* requiretty/#Defaults      requiretty/g' /etc/sudoers
 RUN echo "yarn ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 # Setup mesosphere repositories
-#RUN rpm -Uvh http://repos.mesosphere.com/el/7/noarch/RPMS/mesosphere-el-repo-7-1.noarch.rpm
 
 WORKDIR /tmp
 RUN wget http://repos.mesosphere.com/el/7/x86_64/RPMS/mesos-0.28.1-2.0.20.centos701406.x86_64.rpm
@@ -55,7 +54,6 @@ RUN rpm -Uvh mesos-0.28.1-2.0.20.centos701406.x86_64.rpm
 RUN yum -y update
 
 # Install Mesos
-#RUN yum install -y mesos=`apt-cache madison mesos | grep $MESOS_VER | head -1 | awk {'print $3'}` curl tar
 RUN yum install -y mesos
 
 # Download and install Cloudera 5
@@ -65,7 +63,7 @@ RUN rpm --import https://archive.cloudera.com/cdh5/redhat/7/x86_64/cdh/RPM-GPG-K
 RUN yum -y install hadoop-mapreduce-historyserver hadoop-yarn-proxyserver hadoop-yarn-resourcemanager
 
 # Cleanup
-RUN rm -rf cloudera-cdh-5-0.x86_64.rpm mesosphere-el-repo-7-1.noarch.rpm 
+RUN rm -rf cloudera-cdh-5-0.x86_64.rpm mesosphere-el-repo-7-1.noarch.rpm
 
 # Copy over myriad libraries
 ADD ./libs/* /usr/lib/hadoop-yarn/lib/
